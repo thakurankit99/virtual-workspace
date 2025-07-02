@@ -1,19 +1,25 @@
 #!/bin/bash
 
-# Start Xvfb with smaller resolution and color depth
-Xvfb :1 -screen 0 1280x800x16 &
+# Start Xvfb with tiny resolution and minimal color depth
+Xvfb :1 -screen 0 800x600x8 &
 
 # Set display
 export DISPLAY=:1
 
-# Use a lighter window manager if xfce4-minimal not found
-if ! command -v startxfce4 &> /dev/null; then
-    echo "Installing lightweight window manager..."
-    apt-get update && apt-get install -y --no-install-recommends fluxbox
+# Use the lightest possible window manager
+if command -v fluxbox &> /dev/null; then
     fluxbox &
+elif command -v openbox &> /dev/null; then
+    openbox &
+elif command -v icewm &> /dev/null; then
+    icewm &
+elif ! command -v startxfce4 &> /dev/null; then
+    echo "Installing ultra-lightweight window manager..."
+    apt-get update && apt-get install -y --no-install-recommends openbox
+    openbox &
 else
-    # Start xfce4 with minimal settings
-    startxfce4 --compositor=no &
+    # Start xfce4 with absolute minimal settings
+    startxfce4 --compositor=no --disable-compositor &
 fi
 
 # Wait for desktop to start
@@ -23,30 +29,18 @@ sleep 2
 mkdir -p ~/.vnc
 x11vnc -storepasswd vncpass ~/.vnc/passwd
 
-# Start VNC server with optimized settings
-x11vnc -display :1 -rfbport 5900 -shared -forever -passwd vncpass -noxrecord -noxfixes -noxdamage -nopw -wait 5 &
+# Start VNC server with ultra-optimized settings
+x11vnc -display :1 -rfbport 5900 -shared -forever -passwd vncpass -noxrecord -noxfixes -noxdamage -nopw -wait 5 -defer 5 -noscr -threads -noxrandr &
 
 # Start noVNC with minimal options
 /opt/novnc/utils/novnc_proxy --vnc localhost:5900 --listen ${PORT:-8080}
 
-# Create VS Code desktop shortcut
+# Create minimal VS Code desktop shortcut
 mkdir -p /root/Desktop
-cat > /root/Desktop/vscode.desktop << EOF
-[Desktop Entry]
-Name=Visual Studio Code
-Comment=Code Editing. Redefined.
-GenericName=Text Editor
-Exec=/usr/bin/code --no-sandbox --unity-launch %F
-Icon=/usr/share/pixmaps/com.visualstudio.code.png
-Type=Application
-StartupNotify=false
-StartupWMClass=Code
-Categories=TextEditor;Development;IDE;
-MimeType=text/plain;inode/directory;
-Actions=new-empty-window;
-Keywords=vscode;
-EOF
-
+echo '[Desktop Entry]
+Name=VS Code
+Exec=/usr/bin/code --no-sandbox --disable-gpu --disable-software-rasterizer
+Type=Application' > /root/Desktop/vscode.desktop
 chmod +x /root/Desktop/vscode.desktop
 
 # Verify VS Code installation

@@ -3,30 +3,24 @@ FROM ubuntu:20.04
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies with minimal packages
+# Install absolute minimal dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
     wget \
-    git \
     xvfb \
     x11vnc \
-    xfce4-minimal \
-    xfce4-terminal \
+    openbox \
     supervisor \
     novnc \
     net-tools \
-    libnotify4 \
     libnss3 \
-    libxss1 \
     libgtk-3-0 \
     libgbm1 \
-    firefox-esr \
     dbus-x11 \
     libsecret-1-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install VS Code
+# Install VS Code with minimal dependencies
 RUN wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O /tmp/vscode.deb \
     && apt-get update \
     && apt-get install -y --no-install-recommends /tmp/vscode.deb \
@@ -34,19 +28,25 @@ RUN wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O 
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Setup noVNC with minimal configuration
+# Install minimal browser
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    firefox-esr \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup minimal noVNC
 RUN mkdir -p /opt/novnc/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.3.0.tar.gz | tar xz --strip 1 -C /opt/novnc \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.10.0.tar.gz | tar xz --strip 1 -C /opt/novnc/utils/websockify \
-    && rm -rf /opt/novnc/docs /opt/novnc/tests /opt/novnc/utils/websockify/tests
+    && rm -rf /opt/novnc/docs /opt/novnc/tests /opt/novnc/utils/websockify/tests \
+    && find /opt/novnc -type f -name "*.html" ! -name "vnc.html" -delete \
+    && find /opt/novnc -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true
 
 # Copy index.html to redirect to vnc.html
 COPY index.html /opt/novnc/
 
-# Create VS Code launcher
-RUN mkdir -p /usr/share/applications /root/Desktop \
-    && echo '[Desktop Entry]\nName=VS Code\nExec=/usr/bin/code --no-sandbox\nType=Application\nIcon=code' > /root/Desktop/vscode.desktop \
-    && chmod +x /root/Desktop/vscode.desktop
+# Create minimal desktop directory
+RUN mkdir -p /root/Desktop
 
 # Create the startup script
 COPY start-vnc-session.sh /usr/bin/
