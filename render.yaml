@@ -3,10 +3,11 @@ services:
     name: vscode-web
     env: docker
     dockerfilePath: ./Dockerfile
+    plan: free
     envVars:
       - key: PORT
         value: 8080
     disk:
       name: workspace
       mountPath: /workspace
-      sizeGB: 10 
+      sizeGB: 1 
