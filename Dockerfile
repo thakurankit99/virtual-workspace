@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dbus-x11 \
     libsecret-1-0 \
     gnupg \
+    xterm \
+    x11-xserver-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
