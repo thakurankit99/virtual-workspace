@@ -10,13 +10,15 @@ This project provides a lightweight Docker container with VS Code and Firefox, a
 - XFCE4 desktop environment
 - Accessible via noVNC (browser-based VNC client)
 
-## Building the Container
+## Local Development
+
+### Building the Container
 
 ```bash
 docker build -t vscode-container .
 ```
 
-## Running the Container
+### Running the Container Locally
 
 ```bash
 docker run -d --name vscode-env -p 8080:8080 -p 5900:5900 -v $(pwd)/workspace:/workspace vscode-container
@@ -28,21 +30,48 @@ This command:
 - Maps port 5900 for direct VNC access
 - Creates a volume mapping your local `workspace` directory to `/workspace` in the container
 
-## Accessing the Container
+### Accessing the Local Container
 
-### Via Web Browser (Recommended)
+#### Via Web Browser (Recommended)
 1. Open your browser
 2. Go to `http://localhost:8080/vnc.html`
 3. Click "Connect" button
 4. Enter the VNC password: `vncpass`
 
-### Via VNC Client
+#### Via VNC Client
 Connect to `localhost:5900` with password `vncpass`.
+
+## Deploying to Render
+
+### Option 1: Using the Render Dashboard
+
+1. Create a new Web Service in your Render dashboard
+2. Connect your GitHub/GitLab repository containing this code
+3. Select "Docker" as the Environment
+4. Set the following:
+   - Name: vscode-web (or your preferred name)
+   - Instance Type: Choose based on your needs (minimum Standard)
+   - Disk: 10GB or more
+5. Click "Create Web Service"
+
+### Option 2: Using render.yaml
+
+1. Push this repository to GitHub/GitLab
+2. Connect your Render account to your repository
+3. Render will automatically detect the `render.yaml` file and suggest the deployment
+4. Follow the prompts to complete deployment
+
+### Accessing on Render
+
+Once deployed, access your VS Code environment at the URL provided by Render:
+```
+https://your-service-name.onrender.com/vnc.html
+```
 
 ## Usage
 
 After connecting, you can use VS Code and Firefox within the container. 
-Any files saved in the `/workspace` directory will persist on your host machine.
+Any files saved in the `/workspace` directory will persist.
 
 ## Customization
 

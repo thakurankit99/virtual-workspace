@@ -22,18 +22,32 @@ RUN apt-get update && apt-get install -y \
     libgbm1 \
     libasound2 \
     firefox \
+    gnome-keyring \
+    libsecret-1-0 \
+    libx11-xcb1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install VS Code
 RUN wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O /tmp/vscode.deb \
-    && dpkg -i /tmp/vscode.deb || apt-get -f install -y \
+    && apt-get update \
+    && apt-get install -y /tmp/vscode.deb \
     && rm /tmp/vscode.deb
+
+# Create desktop shortcut directory
+RUN mkdir -p /root/Desktop
 
 # Setup noVNC
 RUN mkdir -p /opt/novnc/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.3.0.tar.gz | tar xz --strip 1 -C /opt/novnc \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.10.0.tar.gz | tar xz --strip 1 -C /opt/novnc/utils/websockify
+
+# Copy index.html to redirect to vnc.html
+COPY index.html /opt/novnc/
+
+# Copy VS Code launcher script
+COPY create-vscode-launcher.sh /tmp/
+RUN chmod +x /tmp/create-vscode-launcher.sh && /tmp/create-vscode-launcher.sh
 
 # Create the startup script
 COPY start-vnc-session.sh /usr/bin/
@@ -45,10 +59,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Set working directory
 WORKDIR /workspace
 
-# Expose ports
-# 8080: noVNC web interface
-# 5900: VNC port
+# Expose ports - use PORT env var for Render compatibility
 EXPOSE 8080 5900
+ENV PORT=8080
 
 # Start supervisord
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 

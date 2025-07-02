@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: vscode-web
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+    disk:
+      name: workspace
+      mountPath: /workspace
+      sizeGB: 10 
