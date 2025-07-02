@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  vscode-env:
+    build: .
+    container_name: vscode-env
+    ports:
+      - "8080:8080"  # noVNC web interface
+      - "5900:5900"  # VNC port
+    volumes:
+      - ./workspace:/workspace
+    restart: unless-stopped 
