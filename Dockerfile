@@ -17,8 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgbm1 \
     dbus-x11 \
     libsecret-1-0 \
+    gnupg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Add Microsoft GPG key for VS Code
+RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg
 
 # Install VS Code with minimal dependencies
 RUN wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O /tmp/vscode.deb \
@@ -28,9 +32,9 @@ RUN wget -q https://update.code.visualstudio.com/latest/linux-deb-x64/stable -O 
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install minimal browser
+# Install lightweight browser (Dillo)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    firefox-esr \
+    dillo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -47,6 +51,10 @@ COPY index.html /opt/novnc/
 
 # Create minimal desktop directory
 RUN mkdir -p /root/Desktop
+
+# Create browser shortcut
+RUN echo '[Desktop Entry]\nName=Dillo Browser\nExec=dillo\nType=Application' > /root/Desktop/browser.desktop \
+    && chmod +x /root/Desktop/browser.desktop
 
 # Create the startup script
 COPY start-vnc-session.sh /usr/bin/
